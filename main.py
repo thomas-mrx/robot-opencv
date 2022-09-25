@@ -5,3 +5,5 @@ if __name__ == '__main__':
 
     app = App("Playground")
     app.loop()
+
+    print("stopped")

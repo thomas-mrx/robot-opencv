@@ -1,10 +1,9 @@
-import math
-import numpy as np
 import cv2
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Polygon
 
 from src.draw import Draw
-from utils.constants import DISTANCE, FRAME_WIDTH, FRAME_HEIGHT, DEBUG_MARKERS, DEBUG_ROBOT
+from src.ui import Ui
+from utils.constants import FRAME_WIDTH, FRAME_HEIGHT, DEBUG_MARKERS, DEBUG_ROBOT
 from utils.functions import midpoint
 
 
@@ -30,6 +29,7 @@ class App:
         self.arucoDetector = cv2.aruco.DetectorParameters_create()
 
         self.drawingManager = Draw()
+        self.uiManager = Ui()
 
     def loop(self):
         cv2.namedWindow(self.name, cv2.WINDOW_AUTOSIZE)
@@ -108,6 +108,7 @@ class App:
                 if not self.drawingManager.boundaries.is_empty:
                     frame = self.drawingManager.render(frame)
 
+                frame = self.uiManager.render(frame)
                 cv2.imshow(self.name, frame)
 
                 key = cv2.waitKey(1) & 0xFF
