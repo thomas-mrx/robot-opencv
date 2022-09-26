@@ -3,7 +3,9 @@ import time
 # shows debug markers
 DEBUG_MARKERS = False
 # shows debug robot helpers
-DEBUG_ROBOT = True
+DEBUG_ROBOT = False
+# shows interpolated points
+DEBUG_INTERPOLATION = False
 
 # camera frame width and height
 FRAME_WIDTH = 640

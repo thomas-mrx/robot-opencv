@@ -5,24 +5,33 @@ import numpy as np
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
-from utils.constants import DELAY_MS, CURRENT_TIME, DISTANCE
-from utils.functions import midpoint
+from utils.constants import DELAY_MS, CURRENT_TIME, DISTANCE, DEBUG_INTERPOLATION
+from utils.functions import midpoint, hsv2bgr
 
 
 class Draw:
     def __init__(self):
         self.currentLayer = 0
-        self.layers = [[]]
+        self.layers = [[], [], [], []]
         self.boundaries = Polygon()
         self.active = False
         self.lastInteraction = CURRENT_TIME()
         self.animateX = 0
         self.animateY = 1
 
+    def empty_layer(self):
+        self.layers[self.currentLayer] = []
+
     def set_layer(self, i):
         self.currentLayer = i
 
+    def get_layer(self, i=-1):
+        if i == -1:
+            i = self.currentLayer
+        return self.layers[i]
+
     def event_handler(self, event, x, y, flags, params):
+        y = y - params["app"].uiManager.toolbarSize
         robot_position = params["app"].robotPosition()
         in_boundaries = self.boundaries.contains(Point(x, y))
 
@@ -44,6 +53,7 @@ class Draw:
     def draw_points(self, frame):
         last_point = None
         last_inter = None
+        color_random = 1 / (self.currentLayer + 1)
         for xy in self.layers[self.currentLayer]:
             try:
                 x, y = xy
@@ -55,13 +65,21 @@ class Draw:
             if corners[0] and corners[3]:
                 bottomY = corners[0][1]
                 topY = corners[3][1]
-                scale = 1.5 - ((y - bottomY) / (topY - bottomY))
+                if bottomY == topY:
+                    scaleFactor = 0
+                else:
+                    scaleFactor = ((y - bottomY) / (topY - bottomY))
+                scale = 1.5 - scaleFactor
 
             if last_point:
-                cv2.line(frame, last_point, (x, y), (0, 0, 255), math.ceil(3 * scale))
+                color = hsv2bgr(color_random, 1, 1)
+                cv2.line(frame, last_point, (x, y), color, max(math.ceil(3 * scale), 1))
+                color_random += 0.01
+                if color_random > 1:
+                    color_random = 0
 
-            if not last_inter or math.dist((x, y), last_inter) > DISTANCE:
-                cv2.circle(frame, (x, y), int(4 * scale), (0, 255, 0), -1)
+            if DEBUG_INTERPOLATION and (not last_inter or math.dist((x, y), last_inter) > DISTANCE):
+                cv2.circle(frame, (x, y), max(int(4 * scale), 0), (0, 255, 0), -1)
                 last_inter = (x, y)
 
             last_point = (x, y)

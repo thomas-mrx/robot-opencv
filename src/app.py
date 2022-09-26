@@ -33,6 +33,7 @@ class App:
 
     def event_dispatcher(self, event, x, y, flags, params):
         if x < FRAME_WIDTH and y > self.uiManager.toolbarSize:
+            self.uiManager.reset_hover()
             self.drawingManager.event_handler(event, x, y, flags, params)
         else:
             self.uiManager.event_handler(event, x, y, flags, params)
@@ -110,19 +111,30 @@ class App:
 
                 # if debug robot, draw helpers
                 if self.robotBack != (0, 0) and self.robotFront != (0, 0):
+                    robot_position = self.robotPosition()
+                    cv2.circle(frame, robot_position, 7, (0, 0, 0), -1)
+                    cv2.circle(frame, robot_position, 6, (255, 255, 255), -1)
+                    if len(self.drawingManager.get_layer()) == 0:
+                        cv2.putText(frame, "Draw from here",
+                                    (robot_position[0] + 15, robot_position[1] - 15),
+                                    cv2.FONT_HERSHEY_SIMPLEX,
+                                    0.55, (0, 0, 0), 4)
+                        cv2.putText(frame, "Draw from here",
+                                    (robot_position[0] + 15, robot_position[1] - 15),
+                                    cv2.FONT_HERSHEY_SIMPLEX,
+                                    0.55, (255, 255, 255), 2)
                     if DEBUG_ROBOT:
-                        cv2.circle(frame, self.robotPosition(), 3, (0, 0, 255), -1)
                         cv2.arrowedLine(frame, self.robotBack, self.robotFront, (0, 0, 255), 4, tipLength=0.5)
                     x, y = midpoint(self.robotBack, self.robotFront)
                     angle = ang((self.robotBack, self.robotFront), ((0, 0), (FRAME_WIDTH, 0)))
-                    robot_status = "Robot markers OK! - angle: "+str(round(angle, 2)).ljust(5, "0")+" - centerX: "+str(x)+" - centerY: "+str(y)
+                    robot_status = "Robot markers OK! - angle: "+str(round(angle, 2)).ljust(5, "0")+" - x: "+str(x)+" - y: "+str(y)
 
                 # if all markers are in the scene, draw the playground
                 if not self.drawingManager.boundaries.is_empty:
                     frame = self.drawingManager.render(frame)
-                    ar_status = " AR markers OK!"
+                    ar_status = "AR markers OK!"
 
-                self.uiManager.toolbarMessage = ar_status + " " + robot_status
+                self.uiManager.toolbarMessage = ar_status + " - " + robot_status + " - Press 'q' to quit"
                 frame = self.uiManager.render(frame)
                 cv2.imshow(self.name, frame)
 

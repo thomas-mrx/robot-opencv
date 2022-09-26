@@ -1,3 +1,4 @@
+import colorsys
 import math
 
 import numpy as np
@@ -32,3 +33,12 @@ def ang(lineA, lineB):
         return 360 - ang_deg
     else:
         return ang_deg
+
+
+def remap(x, in_min, in_max, out_min, out_max):
+    return int((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+
+
+def hsv2bgr(h, s, v):
+    color = tuple(np.flip(np.array(tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h, s, v)))))
+    return [int(c) for c in color]
