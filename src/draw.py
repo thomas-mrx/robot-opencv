@@ -19,7 +19,10 @@ class Draw:
         self.animateX = 0
         self.animateY = 1
 
-    def append_point(self, event, x, y, flags, params):
+    def set_layer(self, i):
+        self.currentLayer = i
+
+    def event_handler(self, event, x, y, flags, params):
         robot_position = params["app"].robotPosition()
         in_boundaries = self.boundaries.contains(Point(x, y))
 

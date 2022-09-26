@@ -4,7 +4,7 @@ from shapely.geometry import Polygon
 from src.draw import Draw
 from src.ui import Ui
 from utils.constants import FRAME_WIDTH, FRAME_HEIGHT, DEBUG_MARKERS, DEBUG_ROBOT
-from utils.functions import midpoint
+from utils.functions import midpoint, ang
 
 
 class App:
@@ -29,17 +29,26 @@ class App:
         self.arucoDetector = cv2.aruco.DetectorParameters_create()
 
         self.drawingManager = Draw()
-        self.uiManager = Ui()
+        self.uiManager = Ui(self.drawingManager)
+
+    def event_dispatcher(self, event, x, y, flags, params):
+        if x < FRAME_WIDTH and y > self.uiManager.toolbarSize:
+            self.drawingManager.event_handler(event, x, y, flags, params)
+        else:
+            self.uiManager.event_handler(event, x, y, flags, params)
 
     def loop(self):
         cv2.namedWindow(self.name, cv2.WINDOW_AUTOSIZE)
-        cv2.setMouseCallback(self.name, self.drawingManager.append_point, {'app': self})
+        cv2.setMouseCallback(self.name, self.event_dispatcher, {'app': self})
 
         cap = cv2.VideoCapture(0)
         cap.set(3, FRAME_WIDTH)
         cap.set(4, FRAME_HEIGHT)
 
         while cap.isOpened():
+
+            ar_status = "Waiting for AR markers..."
+            robot_status = "Waiting for Robot markers..."
 
             success, frame = cap.read()
             if success:
@@ -100,14 +109,20 @@ class App:
                         self.drawingManager.boundaries = Polygon([*self.arGroundMarkers.values()])
 
                 # if debug robot, draw helpers
-                if DEBUG_ROBOT and self.robotBack != (0, 0) and self.robotFront != (0, 0):
-                    cv2.circle(frame, self.robotPosition(), 3, (0, 0, 255), -1)
-                    cv2.arrowedLine(frame, self.robotBack, self.robotFront, (0, 0, 255), 4, tipLength=0.5)
+                if self.robotBack != (0, 0) and self.robotFront != (0, 0):
+                    if DEBUG_ROBOT:
+                        cv2.circle(frame, self.robotPosition(), 3, (0, 0, 255), -1)
+                        cv2.arrowedLine(frame, self.robotBack, self.robotFront, (0, 0, 255), 4, tipLength=0.5)
+                    x, y = midpoint(self.robotBack, self.robotFront)
+                    angle = ang((self.robotBack, self.robotFront), ((0, 0), (FRAME_WIDTH, 0)))
+                    robot_status = "Robot markers OK! - angle: "+str(round(angle, 2)).ljust(5, "0")+" - centerX: "+str(x)+" - centerY: "+str(y)
 
                 # if all markers are in the scene, draw the playground
                 if not self.drawingManager.boundaries.is_empty:
                     frame = self.drawingManager.render(frame)
+                    ar_status = " AR markers OK!"
 
+                self.uiManager.toolbarMessage = ar_status + " " + robot_status
                 frame = self.uiManager.render(frame)
                 cv2.imshow(self.name, frame)
 
