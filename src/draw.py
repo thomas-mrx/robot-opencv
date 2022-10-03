@@ -1,26 +1,37 @@
 import math
+import random
+
 import cv2
 import numpy as np
 
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
-from utils.constants import DELAY_MS, CURRENT_TIME, DISTANCE, DEBUG_INTERPOLATION
+from src.pathfinder import Pathfinder
+from utils.constants import DELAY_MS, CURRENT_TIME
 from utils.functions import midpoint, hsv2bgr
 
 
 class Draw:
     def __init__(self):
+        self.activePathfinder = None
         self.currentLayer = 0
         self.layers = [[], [], [], []]
+        self.pathfinders = [None, None, None, None]
         self.boundaries = Polygon()
         self.active = False
         self.lastInteraction = CURRENT_TIME()
         self.animateX = 0
         self.animateY = 1
+        self.color_init = [0, 0, 0, 0]
+        self.progressionIndex = [0, 0, 0, 0]
 
     def empty_layer(self):
         self.layers[self.currentLayer] = []
+        if self.pathfinders[self.currentLayer] == self.activePathfinder:
+            self.activePathfinder = None
+        self.pathfinders[self.currentLayer] = None
+        self.progressionIndex[self.currentLayer] = 0
 
     def set_layer(self, i):
         self.currentLayer = i
@@ -30,6 +41,21 @@ class Draw:
             i = self.currentLayer
         return self.layers[i]
 
+    def get_color(self, i=-1):
+        if i == -1:
+            i = self.currentLayer
+        return self.color_init[i]
+
+    def set_pathfinder(self):
+        self.activePathfinder = self.pathfinders[self.currentLayer]
+
+    def get_pathfinder(self):
+        return self.activePathfinder
+
+    def set_progression_index(self, val):
+        if val > self.progressionIndex[self.currentLayer]:
+            self.progressionIndex[self.currentLayer] = val
+
     def event_handler(self, event, x, y, flags, params):
         y = y - params["app"].uiManager.toolbarSize
         robot_position = params["app"].robotPosition()
@@ -37,28 +63,36 @@ class Draw:
 
         if event == cv2.EVENT_LBUTTONDOWN and in_boundaries and math.dist(robot_position, (x, y)) < 20:
             self.active = True
+            self.pathfinders[self.currentLayer] = None
+            self.progressionIndex[self.currentLayer] = 0
             self.layers[self.currentLayer] = []
             self.layers[self.currentLayer].append(robot_position)
+            self.color_init[self.currentLayer] = random.uniform(0, 1)
             self.lastInteraction = CURRENT_TIME()
 
         elif self.active and (event == cv2.EVENT_LBUTTONUP or not in_boundaries):
             self.active = False
             self.layers[self.currentLayer].append((x, y))
+            self.pathfinders[self.currentLayer] = Pathfinder(self.layers[self.currentLayer], params["app"])
             self.lastInteraction = CURRENT_TIME()
 
         elif self.active and event == cv2.EVENT_MOUSEMOVE and self.lastInteraction + DELAY_MS < CURRENT_TIME():
             self.layers[self.currentLayer].append((x, y))
             self.lastInteraction = CURRENT_TIME()
 
-    def draw_points(self, frame):
+    def draw_points(self, frame, robot_pos):
+        transparency = frame.copy()
         last_point = None
-        last_inter = None
-        color_random = 1 / (self.currentLayer + 1)
+        color_random = self.color_init[self.currentLayer]
+        i = 0
         for xy in self.layers[self.currentLayer]:
             try:
                 x, y = xy
             except ValueError:
                 continue
+
+            if self.pathfinders[self.currentLayer] and i <= self.pathfinders[self.currentLayer].get_current_point() and math.dist(robot_pos, (x, y)) < 20:
+                self.progressionIndex[self.currentLayer] = i
 
             scale = 1
             corners = self.boundaries.exterior.coords[:-1]
@@ -73,16 +107,19 @@ class Draw:
 
             if last_point:
                 color = hsv2bgr(color_random, 1, 1)
-                cv2.line(frame, last_point, (x, y), color, max(math.ceil(3 * scale), 1))
+                if i <= self.progressionIndex[self.currentLayer]:
+                    cv2.line(frame, last_point, (x, y), color, max(math.ceil(3 * scale), 1))
+                cv2.line(transparency, last_point, (x, y), color, max(math.ceil(3 * scale), 1))
                 color_random += 0.01
                 if color_random > 1:
                     color_random = 0
 
-            if DEBUG_INTERPOLATION and (not last_inter or math.dist((x, y), last_inter) > DISTANCE):
-                cv2.circle(frame, (x, y), max(int(4 * scale), 0), (0, 255, 0), -1)
-                last_inter = (x, y)
-
             last_point = (x, y)
+            i += 1
+
+        alpha = 0.25
+        frame = cv2.addWeighted(transparency, alpha, frame, 1 - alpha, 0)
+        return frame
 
     def draw_playground(self, frame):
         contours = np.array(self.boundaries.exterior.coords[:-1]).astype(int)
@@ -111,6 +148,9 @@ class Draw:
                 self.animateY = 1
         return frame
 
-    def render(self, frame):
-        self.draw_points(frame)
-        return self.draw_playground(frame)
+    def render(self, frame, robot_pos, debug):
+        frame = self.draw_points(frame, robot_pos)
+        frame = self.draw_playground(frame)
+        if debug and self.pathfinders[self.currentLayer]:
+            self.pathfinders[self.currentLayer].debug(frame)
+        return frame

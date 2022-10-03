@@ -53,6 +53,7 @@ class Ui:
                 self.drawInstance.empty_layer()
             if not self.playBtn.is_empty and self.playBtn.contains(mouse_position) and self.clickBtn == self.playBtn:
                 self.clickBtn = None
+                self.drawInstance.set_pathfinder()
 
         elif event == cv2.EVENT_MOUSEMOVE:
             inside_layer = False
@@ -102,7 +103,7 @@ class Ui:
                 minY = min(y)
                 maxY = max(y)
                 last_point = None
-                color_random = 1 / (i + 1)
+                color_random = self.drawInstance.get_color(i)
                 for p in path:
                     pX = remap(p[0], minX, maxX, FRAME_WIDTH + 20, FRAME_WIDTH + self.sidebarSize - 20)
                     pY = remap(p[1], minY, maxY, 50 + ((layer_size + margin) * i) + 10, 50 + layer_size + ((layer_size + margin) * i) - 10)

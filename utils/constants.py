@@ -19,3 +19,6 @@ DISTANCE = 60
 
 # return current time in MS
 CURRENT_TIME = lambda: time.time() * 1000
+
+# angle safeguard value for direction (in degree)
+ANGLE_MARGIN = 10

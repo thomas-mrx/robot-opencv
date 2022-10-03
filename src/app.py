@@ -4,12 +4,13 @@ from shapely.geometry import Polygon
 from src.draw import Draw
 from src.ui import Ui
 from utils.constants import FRAME_WIDTH, FRAME_HEIGHT, DEBUG_MARKERS, DEBUG_ROBOT
-from utils.functions import midpoint, ang
-
+from utils.functions import midpoint
 
 class App:
     def __init__(self, name="live transmission"):
         self.name = name
+
+        self.debug = False
 
         self.arGroundMarkers = {
             'bottom_left': None,
@@ -39,6 +40,8 @@ class App:
             self.uiManager.event_handler(event, x, y, flags, params)
 
     def loop(self):
+        global DEBUG_ROBOT, DEBUG_MARKERS, DEBUG_INTERPOLATION
+
         cv2.namedWindow(self.name, cv2.WINDOW_AUTOSIZE)
         cv2.setMouseCallback(self.name, self.event_dispatcher, {'app': self})
 
@@ -50,6 +53,7 @@ class App:
 
             ar_status = "Waiting for AR markers..."
             robot_status = "Waiting for Robot markers..."
+            DEBUG_ROBOT = DEBUG_MARKERS = DEBUG_INTERPOLATION = self.debug
 
             success, frame = cap.read()
             if success:
@@ -106,10 +110,19 @@ class App:
                                         cv2.FONT_HERSHEY_SIMPLEX,
                                         0.5, (0, 0, 255) if markerID > 3 else (255, 0, 0), 2)
 
-                    if len([v for k, v in self.arGroundMarkers.items() if v is not None]) == 4:
+                    markers_found = len([v for k, v in self.arGroundMarkers.items() if v is not None])
+                    if markers_found == 4:
                         self.drawingManager.boundaries = Polygon([*self.arGroundMarkers.values()])
+                    else:
+                        ar_status = str(markers_found) + " markers found (4 needed)..."
 
-                # if debug robot, draw helpers
+
+                # if all markers are in the scene, draw the playground
+                if not self.drawingManager.boundaries.is_empty:
+                    frame = self.drawingManager.render(frame, self.robotPosition(), self.debug)
+                    ar_status = "AR markers OK!"
+
+                # if robot is in the scene, draw helpers
                 if self.robotBack != (0, 0) and self.robotFront != (0, 0):
                     robot_position = self.robotPosition()
                     cv2.circle(frame, robot_position, 7, (0, 0, 0), -1)
@@ -124,21 +137,22 @@ class App:
                                     cv2.FONT_HERSHEY_SIMPLEX,
                                     0.55, (255, 255, 255), 2)
                     if DEBUG_ROBOT:
-                        cv2.arrowedLine(frame, self.robotBack, self.robotFront, (0, 0, 255), 4, tipLength=0.5)
+                        cv2.arrowedLine(frame, self.robotBack, self.robotFront, (0, 0, 255), 2, tipLength=0.5)
                     x, y = midpoint(self.robotBack, self.robotFront)
-                    angle = ang((self.robotBack, self.robotFront), ((0, 0), (FRAME_WIDTH, 0)))
-                    robot_status = "Robot markers OK! - angle: "+str(round(angle, 2)).ljust(5, "0")+" - x: "+str(x)+" - y: "+str(y)
-
-                # if all markers are in the scene, draw the playground
-                if not self.drawingManager.boundaries.is_empty:
-                    frame = self.drawingManager.render(frame)
-                    ar_status = "AR markers OK!"
+                    robot_status = "Robot markers OK! - x: " + str(x) + " - y: " + str(y)
 
                 self.uiManager.toolbarMessage = ar_status + " - " + robot_status + " - Press 'q' to quit"
                 frame = self.uiManager.render(frame)
                 cv2.imshow(self.name, frame)
 
+                pf = self.drawingManager.get_pathfinder()
+                if pf:
+                    pf.next_point()
+
                 key = cv2.waitKey(1) & 0xFF
+
+                if key == ord("d"):
+                    self.debug = not self.debug
 
                 # if the `q` key was pressed, break from the loop
                 if key == ord("q"):
