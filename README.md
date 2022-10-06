@@ -5,3 +5,5 @@
 ``pip install numpy``
 
 ``pip install shapely``
+
+``pip install pyserial``

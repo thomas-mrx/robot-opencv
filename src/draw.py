@@ -8,8 +8,8 @@ from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
 from src.pathfinder import Pathfinder
-from utils.constants import DELAY_MS, CURRENT_TIME
-from utils.functions import midpoint, hsv2bgr
+from utils.constants import DELAY_MS
+from utils.functions import midpoint, hsv2bgr, current_time
 
 
 class Draw:
@@ -20,7 +20,7 @@ class Draw:
         self.pathfinders = [None, None, None, None]
         self.boundaries = Polygon()
         self.active = False
-        self.lastInteraction = CURRENT_TIME()
+        self.lastInteraction = current_time()
         self.animateX = 0
         self.animateY = 1
         self.color_init = [0, 0, 0, 0]
@@ -68,17 +68,17 @@ class Draw:
             self.layers[self.currentLayer] = []
             self.layers[self.currentLayer].append(robot_position)
             self.color_init[self.currentLayer] = random.uniform(0, 1)
-            self.lastInteraction = CURRENT_TIME()
+            self.lastInteraction = current_time()
 
         elif self.active and (event == cv2.EVENT_LBUTTONUP or not in_boundaries):
             self.active = False
             self.layers[self.currentLayer].append((x, y))
             self.pathfinders[self.currentLayer] = Pathfinder(self.layers[self.currentLayer], params["app"])
-            self.lastInteraction = CURRENT_TIME()
+            self.lastInteraction = current_time()
 
-        elif self.active and event == cv2.EVENT_MOUSEMOVE and self.lastInteraction + DELAY_MS < CURRENT_TIME():
+        elif self.active and event == cv2.EVENT_MOUSEMOVE and self.lastInteraction + DELAY_MS < current_time():
             self.layers[self.currentLayer].append((x, y))
-            self.lastInteraction = CURRENT_TIME()
+            self.lastInteraction = current_time()
 
     def draw_points(self, frame, robot_pos):
         transparency = frame.copy()

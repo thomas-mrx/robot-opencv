@@ -1,5 +1,3 @@
-import time
-
 # shows debug markers
 DEBUG_MARKERS = False
 # shows debug robot helpers
@@ -17,8 +15,13 @@ DELAY_MS = 25
 # distance between each interpolated point
 DISTANCE = 60
 
-# return current time in MS
-CURRENT_TIME = lambda: time.time() * 1000
-
-# angle safeguard value for direction (in degree)
+# angle safeguard value for direction (in degrees)
 ANGLE_MARGIN = 10
+
+# video source for position detection (used in a VideoCapture object from OpenCV)
+# - can be an index (0 for main device camera, 1 for external USB camera if device has another one) or a file sequence or a webcam URL
+# - see doc for more: https://docs.opencv.org/3.4/d8/dfe/classcv_1_1VideoCapture.html
+VIDEO_SRC = 0
+
+# arduino remote serial port address
+REMOTE_PORT = '/dev/ttyS0'

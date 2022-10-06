@@ -3,7 +3,7 @@ from shapely.geometry import Polygon
 
 from src.draw import Draw
 from src.ui import Ui
-from utils.constants import FRAME_WIDTH, FRAME_HEIGHT, DEBUG_MARKERS, DEBUG_ROBOT
+from utils.constants import FRAME_WIDTH, FRAME_HEIGHT, DEBUG_MARKERS, DEBUG_ROBOT, VIDEO_SRC
 from utils.functions import midpoint
 
 class App:
@@ -45,7 +45,7 @@ class App:
         cv2.namedWindow(self.name, cv2.WINDOW_AUTOSIZE)
         cv2.setMouseCallback(self.name, self.event_dispatcher, {'app': self})
 
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(VIDEO_SRC)
         cap.set(3, FRAME_WIDTH)
         cap.set(4, FRAME_HEIGHT)
 

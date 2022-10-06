@@ -1,16 +1,12 @@
 import colorsys
 import math
+import time
 
 import numpy as np
 
 
 def midpoint(p1, p2, ratio=0.5):
     return int((p1[0] * ratio + p2[0] * (1 - ratio))), int((p1[1] * ratio + p2[1] * (1 - ratio)))
-
-
-def modulo(a, b):
-    res = a % b
-    return res if not res else res-b if a < 0 else res
 
 
 def dot(vA, vB):
@@ -51,3 +47,8 @@ def remap(x, in_min, in_max, out_min, out_max):
 def hsv2bgr(h, s, v):
     color = tuple(np.flip(np.array(tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h, s, v)))))
     return [int(c) for c in color]
+
+
+# return current time in MS
+def current_time():
+    return time.time() * 1000
