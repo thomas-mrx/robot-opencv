@@ -7,6 +7,7 @@ import numpy as np
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
+from src.game import Game
 from src.pathfinder import Pathfinder
 from utils.constants import DELAY_MS
 from utils.functions import midpoint, hsv2bgr, current_time
@@ -18,6 +19,7 @@ class Draw:
         self.currentLayer = 0
         self.layers = [[], [], [], []]
         self.pathfinders = [None, None, None, None]
+        self.games = [None, None, None, None]
         self.boundaries = Polygon()
         self.active = False
         self.lastInteraction = current_time()
@@ -32,6 +34,7 @@ class Draw:
             self.activePathfinder = None
         self.pathfinders[self.currentLayer] = None
         self.progressionIndex[self.currentLayer] = 0
+        self.games[self.currentLayer] = None
 
     def set_layer(self, i):
         self.currentLayer = i
@@ -51,6 +54,11 @@ class Draw:
 
     def get_pathfinder(self):
         return self.activePathfinder
+
+    def is_pathfinder_active(self, i=-1):
+        if i == -1:
+            i = self.currentLayer
+        return self.activePathfinder and self.pathfinders[i] == self.activePathfinder
 
     def set_progression_index(self, val):
         if val > self.progressionIndex[self.currentLayer]:
@@ -91,7 +99,7 @@ class Draw:
             except ValueError:
                 continue
 
-            if self.pathfinders[self.currentLayer] and i <= self.pathfinders[self.currentLayer].get_current_point() and math.dist(robot_pos, (x, y)) < 20:
+            if self.pathfinders[self.currentLayer] and self.pathfinders[self.currentLayer] == self.activePathfinder and i <= self.pathfinders[self.currentLayer].get_current_point() and math.dist(robot_pos, (x, y)) < 20:
                 self.progressionIndex[self.currentLayer] = i
 
             scale = 1
@@ -153,4 +161,11 @@ class Draw:
         frame = self.draw_playground(frame)
         if debug and self.pathfinders[self.currentLayer]:
             self.pathfinders[self.currentLayer].debug(frame)
+        if not self.games[self.currentLayer] and not self.boundaries.is_empty:
+            coords = self.boundaries.exterior.coords[:-1]
+            min_bound = (max(coords[0][0], coords[3][0]), max(coords[2][1], coords[3][1]))
+            max_bound = (min(coords[1][0], coords[2][0]), min(coords[0][1], coords[1][1]))
+            self.games[self.currentLayer] = Game(min_bound, max_bound, random.randint(2, 5))
+        if self.games[self.currentLayer]:
+            frame = self.games[self.currentLayer].render(frame, robot_pos, self.is_pathfinder_active())
         return frame

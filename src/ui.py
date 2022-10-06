@@ -82,7 +82,9 @@ class Ui:
         margin = 8
         for i in range(0, 4):
             borderColor = [8, 5, 3]
-            if self.drawInstance.currentLayer == i or self.clickLayer == i:
+            if self.drawInstance.is_pathfinder_active(i):
+                borderColor = [0, 223, 255]
+            elif self.drawInstance.currentLayer == i or self.clickLayer == i:
                 borderColor = [255, 255, 255]
             elif self.hoverLayer == i:
                 borderColor = [201, 176, 160]

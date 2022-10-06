@@ -113,6 +113,7 @@ class App:
                     markers_found = len([v for k, v in self.arGroundMarkers.items() if v is not None])
                     if markers_found == 4:
                         self.drawingManager.boundaries = Polygon([*self.arGroundMarkers.values()])
+                        ar_status = "AR markers OK!"
                     else:
                         ar_status = str(markers_found) + " markers found (4 needed)..."
 
@@ -120,7 +121,6 @@ class App:
                 # if all markers are in the scene, draw the playground
                 if not self.drawingManager.boundaries.is_empty:
                     frame = self.drawingManager.render(frame, self.robotPosition(), self.debug)
-                    ar_status = "AR markers OK!"
 
                 # if robot is in the scene, draw helpers
                 if self.robotBack != (0, 0) and self.robotFront != (0, 0):
@@ -153,6 +153,9 @@ class App:
 
                 if key == ord("d"):
                     self.debug = not self.debug
+
+                if key == ord("r"):
+                    self.drawingManager.games = [None, None, None, None]
 
                 # if the `q` key was pressed, break from the loop
                 if key == ord("q"):

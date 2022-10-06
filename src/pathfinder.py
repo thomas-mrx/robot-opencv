@@ -2,6 +2,7 @@ import math
 import serial
 import cv2
 from numpy import rad2deg
+from serial import SerialException
 
 from utils.constants import DISTANCE, ANGLE_MARGIN, REMOTE_PORT
 from utils.functions import ang
@@ -13,13 +14,20 @@ class Pathfinder:
         self.currentPoint = 0
         self.originalIndexes = []
         self.app = app_instance
-        self.remote = serial.Serial(REMOTE_PORT, 9600, write_timeout=0.25)
+        self.remote = None
+        try:
+            self.remote = serial.Serial(REMOTE_PORT, 9600, write_timeout=0.25)
+        except SerialException:
+            print(f"NO OPEN PORT FOUND FOR SERIAL '{REMOTE_PORT}'. ORDERS WILL NOT BE SEND TO REMOTE")
+            pass
+
         self.lastOrder = None
 
         last_last_point = None
         last_point = points[0]
-        self.path.append(points[0])
         i = 0
+        self.path.append(points[0])
+        self.originalIndexes.append(i)
         for x, y in points:
             angle = 0
             if last_last_point:
@@ -32,6 +40,7 @@ class Pathfinder:
                 last_point = (x, y)
             i += 1
         self.path.append(points[-1])
+        self.originalIndexes.append(len(points)-1)
 
     def get_current_point(self):
         return self.originalIndexes[self.currentPoint % len(self.originalIndexes)]
@@ -76,21 +85,25 @@ class Pathfinder:
 
     def next_point(self):
         if self.currentPoint >= len(self.path):
-            print("SENDING \"STOP\" to "+REMOTE_PORT)
-            self.remote.write("STOP".encode("utf-8"))
+            if self.remote:
+                print("SENDING \"STOP\" to "+REMOTE_PORT)
+                self.remote.write("STOP".encode("utf-8"))
             return
 
         robot_pos = self.app.robotPosition()
         angle_deg = self.calc_angle(robot_pos)
         if angle_deg > ANGLE_MARGIN:
-            print("SENDING \"LEFT\" to "+REMOTE_PORT)
-            self.remote.write("LEFT".encode("utf-8"))
+            if self.remote:
+                print("SENDING \"LEFT\" to "+REMOTE_PORT)
+                self.remote.write("LEFT".encode("utf-8"))
         elif angle_deg < -ANGLE_MARGIN:
-            print("SENDING \"RIGHT\" to "+REMOTE_PORT)
-            self.remote.write("RIGHT".encode("utf-8"))
+            if self.remote:
+                print("SENDING \"RIGHT\" to "+REMOTE_PORT)
+                self.remote.write("RIGHT".encode("utf-8"))
         elif self.currentPoint < len(self.path):
-            print("SENDING \"FORWARD\" to "+REMOTE_PORT)
-            self.remote.write("FORWARD".encode("utf-8"))
+            if self.remote:
+                print("SENDING \"FORWARD\" to "+REMOTE_PORT)
+                self.remote.write("FORWARD".encode("utf-8"))
 
         if math.dist(robot_pos, self.path[self.currentPoint]) < 20:
             self.app.drawingManager.set_progression_index(self.get_current_point())
