@@ -83,27 +83,26 @@ class Pathfinder:
                     (self.path[self.currentPoint][0] + 20, self.path[self.currentPoint][1]), cv2.FONT_HERSHEY_SIMPLEX,
                     0.5, (0, 0, 255), 1)
 
+    def send_order(self, order):
+        if self.remote:
+            print(f"SENDING \"{order}\" to {REMOTE_PORT}")
+            self.remote.write(order.encode("utf-8"))
+        else:
+            print(f"FAILED TO SEND \"{order}\" to {REMOTE_PORT}. NO SERIAL CONNECTION")
+
     def next_point(self):
         if self.currentPoint >= len(self.path):
-            if self.remote:
-                print("SENDING \"STOP\" to "+REMOTE_PORT)
-                self.remote.write("STOP".encode("utf-8"))
+            self.send_order("STOP")
             return
 
         robot_pos = self.app.robotPosition()
         angle_deg = self.calc_angle(robot_pos)
         if angle_deg > ANGLE_MARGIN:
-            if self.remote:
-                print("SENDING \"LEFT\" to "+REMOTE_PORT)
-                self.remote.write("LEFT".encode("utf-8"))
+            self.send_order("LEFT")
         elif angle_deg < -ANGLE_MARGIN:
-            if self.remote:
-                print("SENDING \"RIGHT\" to "+REMOTE_PORT)
-                self.remote.write("RIGHT".encode("utf-8"))
+            self.send_order("RIGHT")
         elif self.currentPoint < len(self.path):
-            if self.remote:
-                print("SENDING \"FORWARD\" to "+REMOTE_PORT)
-                self.remote.write("FORWARD".encode("utf-8"))
+            self.send_order("FORWARD")
 
         if math.dist(robot_pos, self.path[self.currentPoint]) < 20:
             self.app.drawingManager.set_progression_index(self.get_current_point())
