@@ -140,18 +140,22 @@ class App:
                                         (robot_position[0] + 15, robot_position[1] - 15),
                                         cv2.FONT_HERSHEY_SIMPLEX,
                                         0.55, (255, 255, 255), 2)
+                        debug_text = " | Press 'd' to debug"
                         if DEBUG_ROBOT:
                             cv2.arrowedLine(frame, self.robotBack, self.robotFront, (0, 0, 255), 2, tipLength=0.5)
-                        x, y = midpoint(self.robotBack, self.robotFront)
-                        robot_status = "Robot markers OK! - x: " + str(x) + " - y: " + str(y)
-
-                    self.uiManager.toolbarMessage = ar_status + " - " + robot_status + " - Press 'q' to quit"
-                    frame = self.uiManager.render(frame)
-                    cv2.imshow(self.name, frame)
+                            x, y = robot_position
+                            debug_text = " | x: " + str(x) + ", y: " + str(y)
+                        robot_status = "Robot markers OK!" + debug_text
 
                     pf = self.drawingManager.get_pathfinder()
                     if pf:
                         pf.next_point()
+                        if DEBUG_ROBOT:
+                            robot_status += ", ang: " + str(round(pf.calc_angle(self.robotPosition()))) + "d"
+
+                    self.uiManager.toolbarMessage = ar_status + " | " + robot_status + " | Press 'q' to quit"
+                    frame = self.uiManager.render(frame)
+                    cv2.imshow(self.name, frame)
 
                     key = cv2.waitKey(1) & 0xFF
 

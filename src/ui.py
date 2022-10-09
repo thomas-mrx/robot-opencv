@@ -156,9 +156,9 @@ class Ui:
                 (FRAME_WIDTH + int(self.sidebarSize / 2) + 5, 50 + 36 + ((layer_size + margin) * 4)),
             )
         )
-        cv2.putText(self.ui, "DELETE",
-                    (int(FRAME_WIDTH + int(self.sidebarSize / 2) + 5 + 12), self.toolbarSize + ((layer_size + margin) * 4) + 42 - 2),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 2)
+        cv2.putText(self.ui, "RESET",
+                    (int(FRAME_WIDTH + int(self.sidebarSize / 2) + 5 + 14), self.toolbarSize + ((layer_size + margin) * 4) + 42 - 2),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
     def toolbar(self):
         cv2.putText(self.ui, self.toolbarMessage, (10, int(self.toolbarSize / 1.6)), cv2.FONT_HERSHEY_SIMPLEX, 0.4,
