@@ -171,7 +171,7 @@ class Draw:
         if self.games[self.currentLayer]:
             frame = self.games[self.currentLayer].render(frame, robot_pos, self.is_pathfinder_active())
             if self.is_pathfinder_active() and self.games[self.currentLayer].remaining_time == 0:
-                self.pathfinders[self.currentLayer].send_order("FAIL")
+                self.pathfinders[self.currentLayer].send_order("LOSE")
                 self.activePathfinder = None
                 self.pathfinders[self.currentLayer] = None
             elif self.is_pathfinder_active() and self.games[self.currentLayer].win():

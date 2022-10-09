@@ -113,7 +113,12 @@ class Game:
                 self.remaining_time = 0
         sec = str(math.floor(self.remaining_time / 1000)).rjust(2, "0")
         msec = str(round((self.remaining_time % 1000) / 1000, 2)).ljust(4, "0")
-        cv2.putText(frame, sec + msec[1:], (16, FRAME_HEIGHT - 24), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255) if self.remaining_time > GAME_DURATION / 4 else (0, 0, 204), 2)
+        extra_text = ""
+        if self.win():
+            extra_text = " - You WIN!"
+        elif self.remaining_time == 0:
+            extra_text = " - You LOSE :("
+        cv2.putText(frame, sec + msec[1:] + extra_text, (16, FRAME_HEIGHT - 24), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255) if self.remaining_time > GAME_DURATION / 4 else (0, 0, 204), 2)
 
         self.last_frame = current_time()
         return frame
