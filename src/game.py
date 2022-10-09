@@ -71,7 +71,7 @@ class Game:
             scale = 1.5 - scaleFactor
             self.coins.append(Coin(x, y, int(scale * base_size), coin.get(cv2.CAP_PROP_FRAME_COUNT)))
             if not self.coin_icon:
-                self.coin_icon = Coin(FRAME_WIDTH - 32, FRAME_HEIGHT - 32, 32, 1)
+                self.coin_icon = Coin(FRAME_WIDTH - 56, FRAME_HEIGHT - 32, 32, 0)
 
         while coin.get(cv2.CAP_PROP_POS_FRAMES) < coin.get(cv2.CAP_PROP_FRAME_COUNT):
             success, image = coin.read()
@@ -101,14 +101,16 @@ class Game:
 
         # draw score
         self.coin_icon.draw(frame)
-        cv2.putText(frame, self.score(), FRAME_WIDTH - 32, FRAME_HEIGHT - 32, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+        cv2.putText(frame, str(self.score()), (FRAME_WIDTH - 32, FRAME_HEIGHT - 24), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255), 2)
 
         # calc remaining time and draw it
         if self.last_frame and active and self.remaining_time > 0:
             self.remaining_time -= current_time() - self.last_frame
             if self.remaining_time < 0:
                 self.remaining_time = 0
-        cv2.putText(frame, round(self.remaining_time * 1000, 2), 0, FRAME_HEIGHT - 32, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255) if self.remaining_time > GAME_DURATION / 4 else (0, 0, 204), 1)
+        sec = str(math.floor(self.remaining_time / 1000)).rjust(2, "0")
+        msec = str(round((self.remaining_time % 1000) / 1000, 2)).ljust(4, "0")
+        cv2.putText(frame, sec + msec[1:], (16, FRAME_HEIGHT - 24), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255) if self.remaining_time > GAME_DURATION / 4 else (0, 0, 204), 2)
 
         self.last_frame = current_time()
         return frame

@@ -27,4 +27,4 @@ VIDEO_SRC = 0
 REMOTE_PORT = '/dev/ttyS0'
 
 # duration of a game (in milliseconds)
-GAME_DURATION = 10000
+GAME_DURATION = 20000
