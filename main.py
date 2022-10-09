@@ -1,3 +1,6 @@
+import os
+import sys
+
 from src.app import App
 
 if __name__ == '__main__':
@@ -6,4 +9,4 @@ if __name__ == '__main__':
     app = App("RainBowt")
     app.loop()
 
-    print("stopped")
+    print("stopped (nicely)")

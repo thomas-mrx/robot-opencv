@@ -25,3 +25,6 @@ VIDEO_SRC = 0
 
 # arduino remote serial port address
 REMOTE_PORT = '/dev/ttyS0'
+
+# duration of a game (in milliseconds)
+GAME_DURATION = 10000

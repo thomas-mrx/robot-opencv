@@ -3,8 +3,9 @@ from random import randint
 
 import cv2
 
-from utils.constants import FRAME_WIDTH
+from utils.constants import FRAME_WIDTH, FRAME_HEIGHT, GAME_DURATION
 from utils.functions import current_time
+
 
 class Coin:
 
@@ -35,7 +36,11 @@ class Game:
         self.min = min_bound
         self.max = max_bound
         self.last_draw = 0
+        self.last_frame = None
         self.coins = []
+        self.coin_icon = None
+        self.coin_number = coin_number
+        self.remaining_time = GAME_DURATION
 
         coin = cv2.VideoCapture("static/coin.mp4")
         base_size = FRAME_WIDTH / 20
@@ -65,12 +70,19 @@ class Game:
                 scaleFactor = ((y - bottomY) / (topY - bottomY))
             scale = 1.5 - scaleFactor
             self.coins.append(Coin(x, y, int(scale * base_size), coin.get(cv2.CAP_PROP_FRAME_COUNT)))
+            if not self.coin_icon:
+                self.coin_icon = Coin(FRAME_WIDTH - 32, FRAME_HEIGHT - 32, 32, 1)
 
         while coin.get(cv2.CAP_PROP_POS_FRAMES) < coin.get(cv2.CAP_PROP_FRAME_COUNT):
             success, image = coin.read()
             if success:
+                if len(self.coin_icon.buffer) == 0:
+                    self.coin_icon.buffer.append(cv2.resize(image, (self.coin_icon.size, self.coin_icon.size), interpolation=cv2.INTER_AREA))
                 for c in self.coins:
                     c.buffer.append(cv2.resize(image, (c.size, c.size), interpolation=cv2.INTER_AREA))
+
+    def score(self):
+        return self.coin_number - len(self.coins)
 
     def render(self, frame, robot_pos, active):
         if self.last_draw + 80 < current_time():
@@ -87,5 +99,17 @@ class Game:
         for c in remove_coins:
             self.coins.remove(c)
 
+        # draw score
+        self.coin_icon.draw(frame)
+        cv2.putText(frame, self.score(), FRAME_WIDTH - 32, FRAME_HEIGHT - 32, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+
+        # calc remaining time and draw it
+        if self.last_frame and active and self.remaining_time > 0:
+            self.remaining_time -= current_time() - self.last_frame
+            if self.remaining_time < 0:
+                self.remaining_time = 0
+        cv2.putText(frame, round(self.remaining_time * 1000, 2), 0, FRAME_HEIGHT - 32, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255) if self.remaining_time > GAME_DURATION / 4 else (0, 0, 204), 1)
+
+        self.last_frame = current_time()
         return frame
 
