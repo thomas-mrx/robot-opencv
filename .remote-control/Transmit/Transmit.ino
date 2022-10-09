@@ -64,31 +64,31 @@ void setup()
 void loop()
 {
   
-  if (last_order == "" || last_order == "WIN" || last_order == "LOSE"){
+  if (last_order == "" || last_order == "WIN" || last_order == "LOSE")
+  {
     joystick[0] = analogRead(JOYSTICK_X);
     joystick[1] = analogRead(JOYSTICK_Y);
   }
   else {
-      String order = "";
       if (Serial.available())
       {
-          order = Serial.readString().trim();
+          String order = Serial.readString().trim();
+          if (order != "" && order != last_order)
+          {
+              last_order = order;
+          }
       }
-      if (order != "" && order != last_order)
-      {
-          last_order = order;
-          if (order == "LEFT"){
-            joystick[0] = 0;
-            joystick[1] = 511;
-          }
-          else if (order == "RIGHT"){
-            joystick[0] = 1023;
-            joystick[1] = 511;
-          }
-          else if (order == "FORWARD"){
-            joystick[0] = 511;
-            joystick[1] = 1023;
-          }
+      if (last_order == "LEFT"){
+        joystick[0] = 0;
+        joystick[1] = 511;
+      }
+      else if (last_order == "RIGHT"){
+         joystick[0] = 1023;
+         joystick[1] = 511;
+      }
+      else if (last_order == "FORWARD"){
+         joystick[0] = 511;
+         joystick[1] = 1023;
       }
   }
     
