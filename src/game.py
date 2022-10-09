@@ -2,7 +2,7 @@ import math
 from random import randint
 
 import cv2
-import pyglet
+
 from utils.constants import FRAME_WIDTH, FRAME_HEIGHT, GAME_DURATION
 from utils.functions import current_time
 
@@ -41,7 +41,6 @@ class Game:
         self.coin_icon = None
         self.coin_number = coin_number
         self.remaining_time = GAME_DURATION
-        self.sound = pyglet.media.load("static/coin.mp3", streaming=False)
 
         coin = cv2.VideoCapture("static/coin.mp4")
         base_size = FRAME_WIDTH / 20
@@ -98,7 +97,6 @@ class Game:
         for c in self.coins:
             frame = c.draw(frame)
             if active and math.dist((c.x + (c.size/2), c.y + (c.size/2)), robot_pos) < 20:
-                self.sound.play()
                 remove_coins.append(c)
 
         for c in remove_coins:

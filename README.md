@@ -10,8 +10,6 @@
 
 ``pip install pyserial``
 
-``pip install pyglet``
-
 ## In-App Shortcuts
 
 ``q`` quit the app nicely
