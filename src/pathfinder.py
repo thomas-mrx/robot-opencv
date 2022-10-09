@@ -1,11 +1,9 @@
 import math
-import serial
 import cv2
 from numpy import rad2deg
-from serial import SerialException
 
-from utils.constants import DISTANCE, ANGLE_MARGIN, REMOTE_PORT
-from utils.functions import ang
+from utils.constants import DISTANCE, ANGLE_MARGIN, REMOTE_PORT, SERIAL_INTERVAL
+from utils.functions import ang, current_time
 
 
 class Pathfinder:
@@ -14,14 +12,10 @@ class Pathfinder:
         self.currentPoint = 0
         self.originalIndexes = []
         self.app = app_instance
-        self.remote = None
-        try:
-            self.remote = serial.Serial(REMOTE_PORT, 9600, write_timeout=0.25)
-        except SerialException:
-            print(f"NO OPEN PORT FOUND FOR SERIAL '{REMOTE_PORT}'. ORDERS WILL NOT BE SEND TO REMOTE")
-            pass
+        self.remote = app_instance.serial
 
         self.lastOrder = None
+        self.lastSend = 0
 
         last_last_point = None
         last_point = points[0]
@@ -84,11 +78,14 @@ class Pathfinder:
                     0.5, (0, 0, 255), 1)
 
     def send_order(self, order):
-        if self.remote:
-            print(f"SENDING \"{order}\" to {REMOTE_PORT}")
-            self.remote.write(order.encode("utf-8"))
-        else:
-            print(f"FAILED TO SEND \"{order}\" to {REMOTE_PORT}. NO SERIAL CONNECTION")
+        if self.lastOrder != order or self.lastSend + SERIAL_INTERVAL < current_time():
+            if self.remote:
+                print(f"SENDING \"{order}\" to {REMOTE_PORT}")
+                self.remote.write(order.encode())
+            else:
+                print(f"FAILED TO SEND \"{order}\" to {REMOTE_PORT}. NO SERIAL CONNECTION")
+            self.lastOrder = order
+            self.lastSend = current_time()
 
     def next_point(self):
         if self.currentPoint >= len(self.path):

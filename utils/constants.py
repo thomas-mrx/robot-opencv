@@ -24,7 +24,10 @@ ANGLE_MARGIN = 10
 VIDEO_SRC = 0
 
 # arduino remote serial port address
-REMOTE_PORT = '/dev/ttyS0'
+REMOTE_PORT = 'COM4'
+
+# serial sending interval in ms if the order is the same as the last one
+SERIAL_INTERVAL = 2000
 
 # duration of a game (in milliseconds)
 GAME_DURATION = 20000

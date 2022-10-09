@@ -1,12 +1,11 @@
-import os
-import sys
-
 import cv2
+import serial
+from serial import SerialException
 from shapely.geometry import Polygon
 
 from src.draw import Draw
 from src.ui import Ui
-from utils.constants import FRAME_WIDTH, FRAME_HEIGHT, DEBUG_MARKERS, DEBUG_ROBOT, VIDEO_SRC
+from utils.constants import FRAME_WIDTH, FRAME_HEIGHT, DEBUG_MARKERS, DEBUG_ROBOT, VIDEO_SRC, REMOTE_PORT
 from utils.functions import midpoint
 
 class App:
@@ -35,6 +34,13 @@ class App:
         self.drawingManager = Draw()
         self.uiManager = Ui(self.drawingManager)
 
+        try:
+            self.serial = serial.Serial(REMOTE_PORT, 9600, timeout=5, write_timeout=5)
+            print(f"CONNECTION TO SERIAL PORT '{REMOTE_PORT}' SUCCESSFULLY ESTABLISHED")
+        except SerialException as e:
+            print(f"ERROR FOR SERIAL '{REMOTE_PORT}' ({str(e)}). ORDERS WILL NOT BE SEND TO REMOTE")
+            pass
+
     def event_dispatcher(self, event, x, y, flags, params):
         if x < FRAME_WIDTH and y > self.uiManager.toolbarSize:
             self.uiManager.reset_hover()
@@ -49,8 +55,8 @@ class App:
         cv2.setMouseCallback(self.name, self.event_dispatcher, {'app': self})
 
         cap = cv2.VideoCapture(VIDEO_SRC)
-        cap.set(3, FRAME_WIDTH)
-        cap.set(4, FRAME_HEIGHT)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
 
         try:
             while cap.isOpened():
@@ -177,3 +183,5 @@ class App:
 
         cap.release()
         cv2.destroyAllWindows()
+        if self.serial:
+            self.serial.close()
