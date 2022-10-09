@@ -84,6 +84,9 @@ class Game:
     def score(self):
         return self.coin_number - len(self.coins)
 
+    def win(self):
+        return self.score() == self.coin_number
+
     def render(self, frame, robot_pos, active):
         if self.last_draw + 80 < current_time():
             for c in self.coins:
@@ -104,7 +107,7 @@ class Game:
         cv2.putText(frame, str(self.score()), (FRAME_WIDTH - 32, FRAME_HEIGHT - 24), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255), 2)
 
         # calc remaining time and draw it
-        if self.last_frame and active and self.remaining_time > 0:
+        if self.last_frame and active and self.remaining_time > 0 and not self.win():
             self.remaining_time -= current_time() - self.last_frame
             if self.remaining_time < 0:
                 self.remaining_time = 0
