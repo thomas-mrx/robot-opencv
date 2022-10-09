@@ -16,4 +16,4 @@
 
 ``d`` enable/disable debug mode
 
-``r`` reload every "Game" instance of every layer (a.k.a. randomize coins everywhere)
+``r`` reload every layer (a.k.a. randomize coins everywhere and delete all drawings)

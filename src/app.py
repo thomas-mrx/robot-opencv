@@ -159,7 +159,9 @@ class App:
                         self.debug = not self.debug
 
                     if key == ord("r"):
-                        self.drawingManager.games = [None, None, None, None]
+                        self.drawingManager.active = False
+                        for i in range(0, len(self.drawingManager.layers)):
+                            self.drawingManager.empty_layer(i)
 
                     # if the `q` key was pressed, break from the loop
                     if key == ord("q"):

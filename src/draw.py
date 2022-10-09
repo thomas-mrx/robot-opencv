@@ -28,13 +28,15 @@ class Draw:
         self.color_init = [0, 0, 0, 0]
         self.progressionIndex = [0, 0, 0, 0]
 
-    def empty_layer(self):
-        self.layers[self.currentLayer] = []
-        if self.pathfinders[self.currentLayer] == self.activePathfinder:
+    def empty_layer(self, i=-1):
+        if i == -1:
+            i = self.currentLayer
+        self.layers[i] = []
+        if self.pathfinders[i] == self.activePathfinder:
             self.activePathfinder = None
-        self.pathfinders[self.currentLayer] = None
-        self.progressionIndex[self.currentLayer] = 0
-        self.games[self.currentLayer] = None
+        self.pathfinders[i] = None
+        self.progressionIndex[i] = 0
+        self.games[i] = None
 
     def set_layer(self, i):
         self.currentLayer = i
