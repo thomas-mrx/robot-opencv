@@ -8,7 +8,7 @@ from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
 from src.game import Game
-from src.pathfinder import Pathfinder
+from src.pathfinder import Pathfinder, Order
 from utils.constants import DELAY_MS
 from utils.functions import midpoint, hsv2bgr, current_time
 
@@ -33,6 +33,8 @@ class Draw:
             i = self.currentLayer
         self.layers[i] = []
         if self.pathfinders[i] == self.activePathfinder:
+            if self.activePathfinder:
+                self.activePathfinder.send_order("LOSE")
             self.activePathfinder = None
         self.pathfinders[i] = None
         self.progressionIndex[i] = 0
@@ -101,7 +103,9 @@ class Draw:
             except ValueError:
                 continue
 
-            if self.pathfinders[self.currentLayer] and self.pathfinders[self.currentLayer] == self.activePathfinder and i <= self.pathfinders[self.currentLayer].get_current_point() and math.dist(robot_pos, (x, y)) < 20:
+            if self.pathfinders[self.currentLayer] and self.pathfinders[
+                self.currentLayer] == self.activePathfinder and i <= self.pathfinders[
+                self.currentLayer].get_current_point() and math.dist(robot_pos, (x, y)) < 20:
                 self.progressionIndex[self.currentLayer] = i
 
             scale = 1
@@ -133,7 +137,7 @@ class Draw:
 
     def draw_playground(self, frame):
         contours = np.array(self.boundaries.exterior.coords[:-1]).astype(int)
-        mask_array = cv2.inRange(frame, np.array([0,0,0]), np.array([0,0,0]))
+        mask_array = cv2.inRange(frame, np.array([0, 0, 0]), np.array([0, 0, 0]))
         cv2.fillPoly(mask_array, [contours], (255, 255, 255))
         mask = cv2.bitwise_and(frame, frame, mask=mask_array)
         alpha = 0.25
@@ -146,7 +150,8 @@ class Draw:
             if i % 2 == 0:
                 start = midpoint(contours[i], contours[(i + 1) % len(contours)], 1 + self.animateX)
                 end = midpoint(contours[i], contours[(i + 1) % len(contours)], self.animateX)
-                cv2.line(frame, limitStart if self.animateX > 0 else start, limitEnd if self.animateX < 0 else end, (255, 255, 255), 4)
+                cv2.line(frame, limitStart if self.animateX > 0 else start, limitEnd if self.animateX < 0 else end,
+                         (255, 255, 255), 4)
             else:
                 start = midpoint(contours[i], contours[(i + 1) % len(contours)], 1. + self.animateY)
                 end = midpoint(contours[i], contours[(i + 1) % len(contours)], self.animateY)

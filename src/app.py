@@ -1,6 +1,6 @@
 import cv2
 import serial
-from serial import SerialException
+from serial.serialutil import SerialException
 from shapely.geometry import Polygon
 
 from src.draw import Draw
@@ -33,6 +33,7 @@ class App:
 
         self.drawingManager = Draw()
         self.uiManager = Ui(self.drawingManager)
+        self.serial = None
 
         try:
             self.serial = serial.Serial(REMOTE_PORT, 9600, timeout=5, write_timeout=5)
@@ -122,8 +123,13 @@ class App:
 
                         markers_found = len([v for k, v in self.arGroundMarkers.items() if v is not None])
                         if markers_found == 4:
-                            self.drawingManager.boundaries = Polygon([*self.arGroundMarkers.values()])
-                            ar_status = "AR markers OK!"
+                            coords = [*self.arGroundMarkers.values()]
+                            if coords[0][0] < coords[1][0] and coords[3][0] < coords[2][0] \
+                                    and coords[0][1] > coords[3][1] and coords[1][1] > coords[2][1]:
+                                self.drawingManager.boundaries = Polygon(coords)
+                                ar_status = "AR markers OK!"
+                            else:
+                                ar_status = "AR markers unexpected pos..."
                         else:
                             ar_status = str(markers_found) + " markers found (4 needed)..."
 
@@ -138,11 +144,15 @@ class App:
                         cv2.circle(frame, robot_position, 7, (0, 0, 0), -1)
                         cv2.circle(frame, robot_position, 6, (255, 255, 255), -1)
                         if len(self.drawingManager.get_layer()) == 0:
-                            cv2.putText(frame, "Draw from here",
+                            if self.drawingManager.boundaries.is_empty:
+                                robot_text = "Robot detected!"
+                            else:
+                                robot_text = "Draw from here"
+                            cv2.putText(frame, robot_text,
                                         (robot_position[0] + 15, robot_position[1] - 15),
                                         cv2.FONT_HERSHEY_SIMPLEX,
                                         0.55, (0, 0, 0), 4)
-                            cv2.putText(frame, "Draw from here",
+                            cv2.putText(frame, robot_text,
                                         (robot_position[0] + 15, robot_position[1] - 15),
                                         cv2.FONT_HERSHEY_SIMPLEX,
                                         0.55, (255, 255, 255), 2)

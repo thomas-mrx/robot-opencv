@@ -48,8 +48,8 @@ class Game:
         for i in range(0, coin_number):
             # do even distribution on x by splitting by coin number
             part = int((max_bound[0] - min_bound[0]) / coin_number)
-            x = randint(min_bound[0] + (part * i), min_bound[0] + (part * (i + 1)))
-            y = randint(min_bound[1], max_bound[1])
+            x = randint(min_bound[0] + (part * i), min_bound[0] + (part * (i + 1)) + 1)
+            y = randint(min_bound[1], max_bound[1] + 1)
 
             # distance check between coins, too slow + distance is fine without it
             # x = y = None

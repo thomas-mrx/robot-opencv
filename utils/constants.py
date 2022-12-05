@@ -24,7 +24,7 @@ ANGLE_MARGIN = 10
 VIDEO_SRC = 0
 
 # arduino remote serial port address
-REMOTE_PORT = 'COM4'
+REMOTE_PORT = '/dev/cu.usbserial-1110'
 
 # serial sending interval in ms if the order is the same as the last one
 SERIAL_INTERVAL = 2000

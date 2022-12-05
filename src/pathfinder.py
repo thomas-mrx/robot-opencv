@@ -1,9 +1,22 @@
 import math
+from enum import Enum
+
 import cv2
 from numpy import rad2deg
 
 from utils.constants import DISTANCE, ANGLE_MARGIN, REMOTE_PORT, SERIAL_INTERVAL
 from utils.functions import ang, current_time
+
+
+class Order(Enum):
+    LEFT = 3
+    RIGHT = 4
+    FORWARD = 1
+    IDLE = 0
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.IDLE
 
 
 class Pathfinder:
@@ -34,7 +47,7 @@ class Pathfinder:
                 last_point = (x, y)
             i += 1
         self.path.append(points[-1])
-        self.originalIndexes.append(len(points)-1)
+        self.originalIndexes.append(len(points) - 1)
 
     def get_current_point(self):
         return self.originalIndexes[self.currentPoint % len(self.originalIndexes)]
@@ -78,10 +91,18 @@ class Pathfinder:
                     0.5, (0, 0, 255), 1)
 
     def send_order(self, order):
+        if order == "LEFT":
+            byte_order = 3
+        elif order == "RIGHT":
+            byte_order = 4
+        elif order == "FORWARD":
+            byte_order = 1
+        else:
+            byte_order = 5
         if self.lastOrder != order or self.lastSend + SERIAL_INTERVAL < current_time():
             if self.remote:
-                print(f"SENDING \"{order}\" to {REMOTE_PORT}")
-                self.remote.write(order.encode())
+                print(f"SENDING \"{order}\" ({byte_order}) to {REMOTE_PORT}")
+                self.remote.write(str(f"{byte_order}\r\n").encode())
             else:
                 print(f"FAILED TO SEND \"{order}\" to {REMOTE_PORT}. NO SERIAL CONNECTION")
             self.lastOrder = order
@@ -104,4 +125,3 @@ class Pathfinder:
         if math.dist(robot_pos, self.path[self.currentPoint]) < 20:
             self.app.drawingManager.set_progression_index(self.get_current_point())
             self.currentPoint += 1
-
