@@ -2,9 +2,10 @@ import math
 from enum import Enum
 
 import cv2
-from numpy import rad2deg
+from numpy import rad2deg, deg2rad
 
-from utils.constants import DISTANCE, ANGLE_MARGIN, REMOTE_PORT, SERIAL_INTERVAL
+from utils.constants import DISTANCE, ANGLE_MIN_MARGIN, REMOTE_PORT, SERIAL_INTERVAL, ANGLE_MIN_DISTANCE, \
+    ANGLE_MAX_DISTANCE, ANGLE_MAX_MARGIN
 from utils.functions import ang, current_time
 
 
@@ -48,6 +49,7 @@ class Pathfinder:
             i += 1
         self.path.append(points[-1])
         self.originalIndexes.append(len(points) - 1)
+        self.dynamic_margin = ANGLE_MIN_MARGIN
 
     def get_current_point(self):
         return self.originalIndexes[self.currentPoint % len(self.originalIndexes)]
@@ -82,6 +84,12 @@ class Pathfinder:
         cv2.line(frame, robot_pos,
                  (int(robot_pos[0] + (radius * math.cos(angle))), int(robot_pos[1] + (radius * math.sin(angle)))),
                  (0, 0, 255), 2)
+        cv2.line(frame, robot_pos,
+                 (int(robot_pos[0] + (radius * math.cos(angle + deg2rad(self.dynamic_margin)))), int(robot_pos[1] + (radius * math.sin(angle + deg2rad(self.dynamic_margin))))),
+                 (255, 0, 0), 2)
+        cv2.line(frame, robot_pos,
+                 (int(robot_pos[0] + (radius * math.cos(angle - deg2rad(self.dynamic_margin)))), int(robot_pos[1] + (radius * math.sin(angle -deg2rad(self.dynamic_margin))))),
+                 (255, 0, 0), 2)
         cv2.putText(frame, str(round(rad2deg(math.atan2(self.path[self.currentPoint][1] - robot_pos[1],
                                                         self.path[self.currentPoint][0] - robot_pos[0])), 2)),
                     (self.path[self.currentPoint][0] + 20, self.path[self.currentPoint][1] - 15),
@@ -115,13 +123,16 @@ class Pathfinder:
 
         robot_pos = self.app.robotPosition()
         angle_deg = self.calc_angle(robot_pos)
-        if angle_deg > ANGLE_MARGIN:
+        distance = math.dist(robot_pos, self.path[self.currentPoint])
+        self.dynamic_margin = ANGLE_MAX_MARGIN-((ANGLE_MAX_MARGIN-ANGLE_MIN_MARGIN)*((max(min(distance, ANGLE_MAX_DISTANCE), ANGLE_MIN_DISTANCE)-ANGLE_MIN_DISTANCE)/(ANGLE_MAX_DISTANCE-ANGLE_MIN_DISTANCE)))
+        print(self.dynamic_margin)
+        if angle_deg > self.dynamic_margin:
             self.send_order("LEFT")
-        elif angle_deg < -ANGLE_MARGIN:
+        elif angle_deg < -self.dynamic_margin:
             self.send_order("RIGHT")
         elif self.currentPoint < len(self.path):
             self.send_order("FORWARD")
 
-        if math.dist(robot_pos, self.path[self.currentPoint]) < 20:
+        if distance < ANGLE_MIN_DISTANCE:
             self.app.drawingManager.set_progression_index(self.get_current_point())
             self.currentPoint += 1

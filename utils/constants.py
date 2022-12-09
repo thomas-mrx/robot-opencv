@@ -15,8 +15,15 @@ DELAY_MS = 25
 # distance between each interpolated point
 DISTANCE = 60
 
-# angle safeguard value for direction (in degrees)
-ANGLE_MARGIN = 10
+# angle minimum safeguard value for direction (in degrees)
+# - this margin value will be used if the robot is further than ANGLE_DISTANCE distance (in pixels on the webcam frame)
+# - else it will automatically be wider proportionally to the distance (i.e. ANGLE_MARGIN_MAX tolerance when robot is really nearby ANGLE_MIN_DISTANCE dist.)
+# - when distance is lower than ANGLE_MIN_DISTANCE, current interpolated point will be collected and cursor will switch to the next one
+# - /!\ ANGLE_MAX_DISTANCE > ANGLE_MIN_DISTANCE ==> ANGLE_MAX_DISTANCE != ANGLE_MIN_DISTANCE
+ANGLE_MIN_MARGIN = 10
+ANGLE_MAX_MARGIN = 90
+ANGLE_MIN_DISTANCE = 20
+ANGLE_MAX_DISTANCE = 60
 
 # video source for position detection (used in a VideoCapture object from OpenCV)
 # - can be an index (0 for main device camera, 1 for external USB camera if device has another one) or a file sequence or a webcam URL

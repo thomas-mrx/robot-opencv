@@ -35,6 +35,7 @@ class App:
         self.uiManager = Ui(self.drawingManager)
         self.serial = None
 
+        print(f"TRYING TO CONNECT TO SERIAL PORT '{REMOTE_PORT}'. PLEASE WAIT...")
         try:
             self.serial = serial.Serial(REMOTE_PORT, 9600, timeout=5, write_timeout=5)
             print(f"CONNECTION TO SERIAL PORT '{REMOTE_PORT}' SUCCESSFULLY ESTABLISHED")
@@ -55,11 +56,13 @@ class App:
         cv2.namedWindow(self.name, cv2.WINDOW_AUTOSIZE)
         cv2.setMouseCallback(self.name, self.event_dispatcher, {'app': self})
 
+        print(f"LOADING VIDEO STREAM FROM '{VIDEO_SRC}' SOURCE. PLEASE WAIT...")
         cap = cv2.VideoCapture(VIDEO_SRC)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
 
         try:
+            print(f"VIDEO STREAM FROM '{VIDEO_SRC}' SOURCE SUCCESSFULLY LOADED")
             while cap.isOpened():
 
                 ar_status = "Waiting for AR markers..."
