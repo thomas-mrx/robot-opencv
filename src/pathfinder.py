@@ -125,7 +125,6 @@ class Pathfinder:
         angle_deg = self.calc_angle(robot_pos)
         distance = math.dist(robot_pos, self.path[self.currentPoint])
         self.dynamic_margin = ANGLE_MAX_MARGIN-((ANGLE_MAX_MARGIN-ANGLE_MIN_MARGIN)*((max(min(distance, ANGLE_MAX_DISTANCE), ANGLE_MIN_DISTANCE)-ANGLE_MIN_DISTANCE)/(ANGLE_MAX_DISTANCE-ANGLE_MIN_DISTANCE)))
-        print(self.dynamic_margin)
         if angle_deg > self.dynamic_margin:
             self.send_order("LEFT")
         elif angle_deg < -self.dynamic_margin:
