@@ -114,7 +114,8 @@ void loop()
             }
         }
     }
-    
+
+    //block the loop while servo are moving
     body.process(trajectory);
 
     // empty buffer after move
