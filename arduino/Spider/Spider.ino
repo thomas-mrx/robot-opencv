@@ -97,16 +97,16 @@ void loop()
           Serial.println(order);
           switch(order){
               case 2:
-                trajectory.step_forward(1);
-                break;
-              case 1:
                 trajectory.step_back(1);
                 break;
+              case 1:
+                trajectory.step_forward(1);
+                break;
               case 4:
-                trajectory.turn_left(1);
+                trajectory.turn_right(1);
                 break;
               case 3:
-                trajectory.turn_right(1);
+                trajectory.turn_left(1);
                 break;
               case 5:
                 trajectory.stand();
@@ -125,93 +125,3 @@ void loop()
 
 }
 
-
-/*//Calibration
-void loop()
-   {
-   for (int i = 0; i < 4; i++) {
-   armController.addPosition({Order::POS, i, 10000, {100, 70, 15}});
-   armController.addPosition({Order::WAIT});
-   }
-   armController.process_orders();
-   delay(1000);
-   }
-*/
-/* //Avancer
-   void loop()
-   {
-   float speed = 200;
-   speed = model.leg_move_speed;
-   armController.addPosition({Order::POS, 0, speed, {KEEP, KEEP, model.z_up}});
-   armController.addPosition({Order::WAIT});
-   armController.addPosition({Order::POS, 0, speed, {model.x_default, model.y_default + (2.) * model.y_step, KEEP}});
-   armController.addPosition({Order::WAIT});
-   armController.addPosition({Order::POS, 0, speed, {KEEP, KEEP, model.z_default}});
-   armController.addPosition({Order::WAIT});
-
-   armController.process_orders();
-   delay(1000);
-
-   speed = model.body_move_speed;
-   armController.addPosition({Order::POS, 0, speed, {model.x_default, model.y_default + (1.) * model.y_step, model.z_default}});
-   armController.addPosition({Order::POS, 1, speed, {model.x_default, model.y_default + (2.) * model.y_step, model.z_default}});
-   armController.addPosition({Order::POS, 2, speed, {model.x_default, model.y_default + (0.) * model.y_step, model.z_default}});
-   armController.addPosition({Order::POS, 3, speed, {model.x_default, model.y_default + (2.) * model.y_step, model.z_default}});
-   armController.addPosition({Order::WAIT});
-
-   armController.process_orders();
-   delay(1000);
-
-   speed = model.leg_move_speed;
-   armController.addPosition({Order::POS, 1, speed, {KEEP, KEEP, model.z_up}});
-   armController.addPosition({Order::WAIT});
-   armController.addPosition({Order::POS, 1, speed, {model.x_default, model.y_default + (1.) * model.y_step, KEEP}});
-   armController.addPosition({Order::WAIT});
-   armController.addPosition({Order::POS, 1, speed, {KEEP, KEEP, model.z_default}});
-   armController.addPosition({Order::WAIT});
-
-   armController.process_orders();
-   delay(1000);
-
-   armController.addPosition({Order::POS, 3, speed, {KEEP, KEEP, model.z_up}});
-   armController.addPosition({Order::WAIT});
-   armController.addPosition({Order::POS, 3, speed, {model.x_default, model.y_default + (1.) * model.y_step, KEEP}});
-   armController.addPosition({Order::WAIT});
-   armController.addPosition({Order::POS, 3, speed, {KEEP, KEEP, model.z_default}});
-   armController.addPosition({Order::WAIT});
-
-   armController.process_orders();
-   delay(1000);
-
-   armController.addPosition({Order::POS, 2, speed, {KEEP, KEEP, model.z_up}});
-   armController.addPosition({Order::WAIT});
-   armController.addPosition({Order::POS, 2, speed, {model.x_default, model.y_default + (1.) * model.y_step, KEEP}});
-   armController.addPosition({Order::WAIT});
-   armController.addPosition({Order::POS, 2, speed, {KEEP, KEEP, model.z_default}});
-   armController.addPosition({Order::WAIT});
-
-   armController.process_orders();
-   delay(1000);
-   }
-//*/
-
-/* //Mouvement
-   void loop()
-   {
-
-   for (int i = 0; i < 4; i++) {
-   armController.addPosition({Order::POS, i, 1000, {100, 80, 15}});
-   }
-
-   float speed = 200;
-   armController.addPosition({Order::POS, 0, speed, {140, 10, -27}});
-   armController.addPosition({Order::WAIT});
-   armController.addPosition({Order::POS, 0, speed, {90, 10, -27}});
-   armController.addPosition({Order::WAIT});
-   armController.addPosition({Order::POS, 0, speed, {90, 80, -27}});
-   armController.addPosition({Order::WAIT});
-
-   armController.process_orders();
-   delay(1000);
-   }
-//*/

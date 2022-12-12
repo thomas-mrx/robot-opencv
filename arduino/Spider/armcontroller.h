@@ -4,7 +4,7 @@
 #include "motors.h"
 #include "arm.h"
 
-#include "lib/ArduinoQueue/ArduinoQueue.h"
+#include "ArduinoQueue.h"
 
 struct Order {
 enum:uint8_t{POS, WAIT} tag;
