@@ -32,7 +32,9 @@ class Coin:
 
 class Game:
 
-    def __init__(self, min_bound, max_bound, coin_number):
+    def __init__(self, coords, coin_number):
+        min_bound = (max(coords[0][0], coords[3][0]), max(coords[2][1], coords[3][1]))
+        max_bound = (min(coords[1][0], coords[2][0]), min(coords[0][1], coords[1][1]))
         self.min = min_bound
         self.max = max_bound
         self.last_draw = 0
@@ -68,8 +70,8 @@ class Game:
                 scaleFactor = 0
             else:
                 scaleFactor = ((y - bottomY) / (topY - bottomY))
-            print(scaleFactor, max_bound[0], min_bound[0])
-            scale = 1.25 - scaleFactor
+            perspectiveFactor = 1 - min(0.5, max(abs(coords[0][0] - coords[3][0]), abs(coords[1][0] - coords[2][0])) / (FRAME_WIDTH * 0.075))
+            scale = min(1, 1 - scaleFactor + perspectiveFactor)
             self.coins.append(Coin(x, y, int(scale * base_size), coin.get(cv2.CAP_PROP_FRAME_COUNT)))
             if not self.coin_icon:
                 self.coin_icon = Coin(FRAME_WIDTH - 56, FRAME_HEIGHT - 32, 32, 0)

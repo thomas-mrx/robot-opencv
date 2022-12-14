@@ -9,7 +9,7 @@ from shapely.geometry.polygon import Polygon
 
 from src.game import Game
 from src.pathfinder import Pathfinder, Order
-from utils.constants import DELAY_MS
+from utils.constants import DELAY_MS, FRAME_WIDTH
 from utils.functions import midpoint, hsv2bgr, current_time
 
 
@@ -117,7 +117,9 @@ class Draw:
                     scaleFactor = 0
                 else:
                     scaleFactor = ((y - bottomY) / (topY - bottomY))
-                scale = 1.5 - scaleFactor
+                perspectiveFactor = 1 - min(0.5, max(abs(corners[0][0] - corners[3][0]), abs(corners[1][0] - corners[2][0])) / (FRAME_WIDTH * 0.075))
+                scale = min(1, 1 - scaleFactor + perspectiveFactor)
+                #scale = 1.5 - scaleFactor
 
             if last_point:
                 color = hsv2bgr(color_random, 1, 1)
@@ -170,9 +172,7 @@ class Draw:
             self.pathfinders[self.currentLayer].debug(frame)
         if not self.games[self.currentLayer] and not self.boundaries.is_empty:
             coords = self.boundaries.exterior.coords[:-1]
-            min_bound = (max(coords[0][0], coords[3][0]), max(coords[2][1], coords[3][1]))
-            max_bound = (min(coords[1][0], coords[2][0]), min(coords[0][1], coords[1][1]))
-            self.games[self.currentLayer] = Game(min_bound, max_bound, random.randint(2, 5))
+            self.games[self.currentLayer] = Game(coords, random.randint(2, 5))
         if self.games[self.currentLayer]:
             frame = self.games[self.currentLayer].render(frame, robot_pos, self.is_pathfinder_active())
             if self.is_pathfinder_active() and self.games[self.currentLayer].remaining_time == 0:

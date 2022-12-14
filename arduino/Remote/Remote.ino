@@ -108,7 +108,7 @@ void loop()
     if (serial_order > 0)
     {
       order = serial_order;
-      serial_order = 0;
+      //serial_order = 0;
     }
 
     if(order >= 0 && last_order != order) {
@@ -117,10 +117,11 @@ void loop()
       Serial.println(last_order);
     }
 
-  if(time+50 < millis()){
+  if(time+500 < millis()){
     time = millis();
-    radio.write(&last_order, 1);
+    serial_order = 0;
   }
+  radio.write(&last_order, 1);
 
   order = 0;
 }
