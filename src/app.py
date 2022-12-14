@@ -192,10 +192,8 @@ class App:
                         break
 
                     try:
-                        # will return a null pointer exception if window is being closed or -1 depending on OS
-                        w = cv2.getWindowProperty(self.name, cv2.WND_PROP_AUTOSIZE)
-                        if w == -1:
-                            break
+                        # will return a null pointer exception if window is being closed
+                        cv2.getWindowProperty(self.name, cv2.WND_PROP_AUTOSIZE)
                     except cv2.error:
                         break
 
