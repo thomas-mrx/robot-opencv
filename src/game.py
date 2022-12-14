@@ -68,7 +68,8 @@ class Game:
                 scaleFactor = 0
             else:
                 scaleFactor = ((y - bottomY) / (topY - bottomY))
-            scale = 1.5 - scaleFactor
+            print(scaleFactor, max_bound[0], min_bound[0])
+            scale = 1.25 - scaleFactor
             self.coins.append(Coin(x, y, int(scale * base_size), coin.get(cv2.CAP_PROP_FRAME_COUNT)))
             if not self.coin_icon:
                 self.coin_icon = Coin(FRAME_WIDTH - 56, FRAME_HEIGHT - 32, 32, 0)

@@ -50,6 +50,7 @@ int key_pressed = 0;// Record the time button is pressed
 byte serial_order = 0;
 byte order = 0;
 byte last_order = 0;
+unsigned long time = 0;
 
 /*
  - setup function
@@ -110,19 +111,22 @@ void loop()
       serial_order = 0;
     }
 
-    if(order > 0 && last_order != order) {
+    if(order >= 0 && last_order != order) {
       last_order = order;
       Serial.print("Order: ");
       Serial.println(last_order);
     }
 
+  if(time+50 < millis()){
+    time = millis();
+    radio.write(&last_order, 1);
+  }
 
-  radio.write(&last_order, 1);
   order = 0;
 }
 
 void serialEvent() {
-  if(Serial.available())
+  while(Serial.available())
   {
      serial_order = Serial.parseInt();
   }

@@ -31,7 +31,7 @@ ArmController<4, 3> armController{motors};
 //Vectorf corrections[] = {{114, 73, 59}, {90, 71, 58}, {103, 83, 50}, {115, 75, 54}}; // Bleue
 //Vectorf corrections[] = {{106, 84, 62}, {109, 85, 45}, {92, 87, 40}, {104, 69, 30}}; // grise
 //Vectorf corrections[] = {{103,53,33},{95,63,28},{105,66,75},{96,65,46}}; // Default
-Vectorf corrections[] = {{112, 60, 57}, {112, 63, 50}, {110, 60, 69}, {98, 83, 50}};
+Vectorf corrections[] = {{112, 60, 57}, {112, 63, 50}, {115, 55, 45}, {98, 83, 50}};
 //Vectorf corrections[] = {
 //  { 110, 60, 80 - OFFSET_Z }, // Leg 1 - Front right (R2) - {H, F, T}
 //  { 100, 65, 85 - OFFSET_Z }, // Leg 2 - Back right (R1) - {H, F, T}
@@ -88,11 +88,8 @@ void loop()
         while(radio.available()){
           radio.read( &order, sizeof(int) );
         }
-        int timeoutDelay = (order > 2) ? 3000 : 1500;
-        timeoutDelay = 0;
-        if(order > 0 && (order != last_order || time+timeoutDelay < millis())){
+        if(order > 0){
           last_order = order;
-          time = millis();
           Serial.print("ORDER = ");
           Serial.println(order);
           switch(order){
@@ -113,15 +110,15 @@ void loop()
                 break;
             }
         }
+      //block the loop while servo are moving
+      body.process(trajectory);
+      // empty buffer after move
+      while(radio.available()){
+        radio.read( &order, sizeof(int) );
+      }
     }
 
-    //block the loop while servo are moving
-    body.process(trajectory);
-
-    // empty buffer after move
-        while(radio.available()){
-          radio.read( &order, sizeof(int) );
-        }
+    order = 0;
 
 }
 
