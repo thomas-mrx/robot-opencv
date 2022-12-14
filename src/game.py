@@ -3,7 +3,7 @@ from random import randint
 
 import cv2
 
-from utils.constants import FRAME_WIDTH, FRAME_HEIGHT, GAME_DURATION
+from utils.constants import FRAME_WIDTH, FRAME_HEIGHT, GAME_DURATION, ANGLE_MIN_DISTANCE
 from utils.functions import current_time
 
 
@@ -43,6 +43,7 @@ class Game:
         self.coin_icon = None
         self.coin_number = coin_number
         self.remaining_time = GAME_DURATION
+        self.stopped = False
 
         coin = cv2.VideoCapture("static/coin.mp4")
         base_size = FRAME_WIDTH / 20
@@ -90,6 +91,12 @@ class Game:
     def win(self):
         return self.score() == self.coin_number
 
+    def has_stopped(self):
+        return self.stopped
+
+    def stop(self):
+        self.stopped = True
+
     def render(self, frame, robot_pos, active):
         if self.last_draw + 80 < current_time():
             for c in self.coins:
@@ -99,7 +106,7 @@ class Game:
         remove_coins = []
         for c in self.coins:
             frame = c.draw(frame)
-            if active and math.dist((c.x + (c.size/2), c.y + (c.size/2)), robot_pos) < 20:
+            if active and math.dist((c.x + (c.size/2), c.y + (c.size/2)), robot_pos) < ANGLE_MIN_DISTANCE and self.remaining_time > 0 and not self.has_stopped():
                 remove_coins.append(c)
 
         for c in remove_coins:
@@ -110,7 +117,7 @@ class Game:
         cv2.putText(frame, str(self.score()), (FRAME_WIDTH - 32, FRAME_HEIGHT - 24), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255), 2)
 
         # calc remaining time and draw it
-        if self.last_frame and active and self.remaining_time > 0 and not self.win():
+        if self.last_frame and active and self.remaining_time > 0 and not self.win() and not self.has_stopped():
             self.remaining_time -= current_time() - self.last_frame
             if self.remaining_time < 0:
                 self.remaining_time = 0
@@ -119,9 +126,11 @@ class Game:
         extra_text = ""
         if self.win():
             extra_text = " - You WIN!"
+        elif self.has_stopped():
+            extra_text = " - " + str(len(self.coins)) + " coins MISSED :'("
         elif self.remaining_time == 0:
             extra_text = " - You LOSE :("
-        cv2.putText(frame, sec + msec[1:] + extra_text, (16, FRAME_HEIGHT - 24), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255) if self.remaining_time > GAME_DURATION / 4 else (0, 0, 204), 2)
+        cv2.putText(frame, sec + msec[1:] + extra_text, (16, FRAME_HEIGHT - 24), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255) if self.remaining_time > GAME_DURATION / 4 and not self.has_stopped() else (0, 0, 204), 2)
 
         self.last_frame = current_time()
         return frame

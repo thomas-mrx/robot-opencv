@@ -51,6 +51,7 @@ byte serial_order = 0;
 byte order = 0;
 byte last_order = 0;
 unsigned long time = 0;
+bool serial_active = false;
 
 /*
  - setup function
@@ -58,6 +59,7 @@ unsigned long time = 0;
 void setup()
 {
 	pinMode(JOYSTICK_K, INPUT_PULLUP);
+  pinMode(13, OUTPUT);
 	//start serial for debug and conrol
 	Serial.begin(9600);
 	//start radio
@@ -72,63 +74,50 @@ void setup()
  * ---------------------------------------------------------------------------*/
 void loop()
 {
-
-	joystick[0] = analogRead(JOYSTICK_X);
-	joystick[1] = analogRead(JOYSTICK_Y);
-
-	joystick[0] -= 512;
-	joystick[1] = 512 - joystick[1];
-
-	float alpha = atan2(joystick[1], joystick[0]);
-	float power = sqrt(pow(joystick[0], 2) + pow(joystick[1], 2));
-
-	if (power > 50)
-	{
-		if (alpha > -PI / 4 && alpha<=PI / 4)
-			order = 4;
-		else if (alpha > PI / 4 && alpha<=PI / 4 * 3)
-			order = 1;
-		else if (alpha > -PI / 4 * 3 && alpha<=-PI / 4)
-			order = 2;
-		else
-			order = 3;
-	}
-
-	key_pressed = 0;
-	while (digitalRead(JOYSTICK_K) == LOW)
-	{
-		delayMicroseconds(2);
-		if (key_pressed++ > 10)
-		{
-			order = 5;
-			break;
-		}
-	}
-
-    if (serial_order > 0)
-    {
-      order = serial_order;
-      //serial_order = 0;
-    }
-
-    if(order >= 0 && last_order != order) {
-      last_order = order;
-      Serial.print("Order: ");
-      Serial.println(last_order);
-    }
-
-  if(time+500 < millis()){
-    time = millis();
-    serial_order = 0;
+  if(Serial.available())
+  {
+    order = Serial.parseInt();
+    serial_active = order == 5 ? false : true;
   }
-  radio.write(&last_order, 1);
+  if(!serial_active){
+      joystick[0] = analogRead(JOYSTICK_X);
+      joystick[1] = analogRead(JOYSTICK_Y);
+
+      joystick[0] -= 512;
+      joystick[1] = 512 - joystick[1];
+
+      float alpha = atan2(joystick[1], joystick[0]);
+      float power = sqrt(pow(joystick[0], 2) + pow(joystick[1], 2));
+
+      if (power > 50)
+      {
+        if (alpha > -PI / 4 && alpha<=PI / 4)
+          order = 4;
+        else if (alpha > PI / 4 && alpha<=PI / 4 * 3)
+          order = 1;
+        else if (alpha > -PI / 4 * 3 && alpha<=-PI / 4)
+          order = 2;
+        else
+          order = 3;
+      }
+
+  }
+        
+  key_pressed = 0;
+  while (digitalRead(JOYSTICK_K) == LOW)
+  {
+    delayMicroseconds(2);
+    if (key_pressed++ > 10)
+    {
+      order = 5;
+      break;
+    }
+  }
+  if (order == 5) {
+    serial_active = false;
+  }
+
+  radio.write(&order, 1);
 
   order = 0;
-}
-
-void serialEvent() {
-  while(Serial.available())
-  {
-     serial_order = Serial.parseInt();
-  }
 }

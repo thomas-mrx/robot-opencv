@@ -20,8 +20,8 @@ DISTANCE = 60
 # - else it will automatically be wider proportionally to the distance (i.e. ANGLE_MARGIN_MAX tolerance when robot is really nearby ANGLE_MIN_DISTANCE dist.)
 # - when distance is lower than ANGLE_MIN_DISTANCE, current interpolated point will be collected and cursor will switch to the next one
 # - /!\ ANGLE_MAX_DISTANCE > ANGLE_MIN_DISTANCE ==> ANGLE_MAX_DISTANCE != ANGLE_MIN_DISTANCE
-ANGLE_MIN_MARGIN = 10
-ANGLE_MAX_MARGIN = 90
+ANGLE_MIN_MARGIN = 20
+ANGLE_MAX_MARGIN = 110
 ANGLE_MIN_DISTANCE = 20
 ANGLE_MAX_DISTANCE = 60
 
@@ -31,10 +31,10 @@ ANGLE_MAX_DISTANCE = 60
 VIDEO_SRC = 0
 
 # arduino remote serial port address
-REMOTE_PORT = '/dev/cu.usbserial-1110'
+REMOTE_PORT = 'COM4'
 
 # serial sending interval in ms if the order is the same as the last one
-SERIAL_INTERVAL = 2000
+SERIAL_INTERVAL = 25
 
 # duration of a game (in milliseconds)
-GAME_DURATION = 20000
+GAME_DURATION = 60000

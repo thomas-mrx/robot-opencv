@@ -9,13 +9,14 @@ from shapely.geometry.polygon import Polygon
 
 from src.game import Game
 from src.pathfinder import Pathfinder, Order
-from utils.constants import DELAY_MS, FRAME_WIDTH
+from utils.constants import DELAY_MS, FRAME_WIDTH, ANGLE_MIN_DISTANCE
 from utils.functions import midpoint, hsv2bgr, current_time
 
 
 class Draw:
     def __init__(self):
         self.activePathfinder = None
+        self.activeGame = None
         self.currentLayer = 0
         self.layers = [[], [], [], []]
         self.pathfinders = [None, None, None, None]
@@ -36,6 +37,7 @@ class Draw:
             if self.activePathfinder:
                 self.activePathfinder.send_order("LOSE")
             self.activePathfinder = None
+            self.activeGame = None
         self.pathfinders[i] = None
         self.progressionIndex[i] = 0
         self.games[i] = None
@@ -53,7 +55,11 @@ class Draw:
             i = self.currentLayer
         return self.color_init[i]
 
+    def get_game(self):
+        return self.activeGame
+
     def set_pathfinder(self):
+        self.activeGame = self.games[self.currentLayer]
         self.activePathfinder = self.pathfinders[self.currentLayer]
 
     def get_pathfinder(self):
@@ -73,7 +79,7 @@ class Draw:
         robot_position = params["app"].robotPosition()
         in_boundaries = self.boundaries.contains(Point(x, y))
 
-        if event == cv2.EVENT_LBUTTONDOWN and in_boundaries and math.dist(robot_position, (x, y)) < 20:
+        if event == cv2.EVENT_LBUTTONDOWN and in_boundaries and math.dist(robot_position, (x, y)) < 20 and not self.is_pathfinder_active():
             self.active = True
             self.pathfinders[self.currentLayer] = None
             self.progressionIndex[self.currentLayer] = 0
@@ -105,7 +111,7 @@ class Draw:
 
             if self.pathfinders[self.currentLayer] and self.pathfinders[
                 self.currentLayer] == self.activePathfinder and i <= self.pathfinders[
-                self.currentLayer].get_current_point() and math.dist(robot_pos, (x, y)) < 20:
+                self.currentLayer].get_current_point() and math.dist(robot_pos, (x, y)) < ANGLE_MIN_DISTANCE:
                 self.progressionIndex[self.currentLayer] = i
 
             scale = 1
@@ -117,15 +123,14 @@ class Draw:
                     scaleFactor = 0
                 else:
                     scaleFactor = ((y - bottomY) / (topY - bottomY))
-                perspectiveFactor = 1 - min(0.5, max(abs(corners[0][0] - corners[3][0]), abs(corners[1][0] - corners[2][0])) / (FRAME_WIDTH * 0.075))
+                perspectiveFactor = 1 - min(0.75, max(abs(corners[0][0] - corners[3][0]), abs(corners[1][0] - corners[2][0])) / (FRAME_WIDTH * 0.075))
                 scale = min(1, 1 - scaleFactor + perspectiveFactor)
-                #scale = 1.5 - scaleFactor
 
             if last_point:
                 color = hsv2bgr(color_random, 1, 1)
                 if i <= self.progressionIndex[self.currentLayer]:
-                    cv2.line(frame, last_point, (x, y), color, max(math.ceil(3 * scale), 1))
-                cv2.line(transparency, last_point, (x, y), color, max(math.ceil(3 * scale), 1))
+                    cv2.line(frame, last_point, (x, y), color, max(math.ceil(6 * scale), 1))
+                cv2.line(transparency, last_point, (x, y), color, max(math.ceil(6 * scale), 1))
                 color_random += 0.01
                 if color_random > 1:
                     color_random = 0
@@ -175,12 +180,17 @@ class Draw:
             self.games[self.currentLayer] = Game(coords, random.randint(2, 5))
         if self.games[self.currentLayer]:
             frame = self.games[self.currentLayer].render(frame, robot_pos, self.is_pathfinder_active())
-            if self.is_pathfinder_active() and self.games[self.currentLayer].remaining_time == 0:
-                self.pathfinders[self.currentLayer].send_order("LOSE")
-                self.activePathfinder = None
-                self.pathfinders[self.currentLayer] = None
-            elif self.is_pathfinder_active() and self.games[self.currentLayer].win():
-                self.pathfinders[self.currentLayer].send_order("WIN")
-                self.activePathfinder = None
-                self.pathfinders[self.currentLayer] = None
+            if self.is_pathfinder_active():
+                if self.games[self.currentLayer].remaining_time == 0:
+                    self.pathfinders[self.currentLayer].send_order("LOSE")
+                    self.activePathfinder = None
+                    self.pathfinders[self.currentLayer] = None
+                elif self.games[self.currentLayer].win():
+                    self.pathfinders[self.currentLayer].send_order("WIN")
+                    self.activePathfinder = None
+                    self.pathfinders[self.currentLayer] = None
+                elif self.games[self.currentLayer].has_stopped():
+                    self.pathfinders[self.currentLayer].send_order("STOP")
+                    self.activePathfinder = None
+                    self.pathfinders[self.currentLayer] = None
         return frame

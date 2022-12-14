@@ -55,6 +55,9 @@ class Pathfinder:
         return self.originalIndexes[self.currentPoint % len(self.originalIndexes)]
 
     def calc_angle(self, robot_position):
+        if self.currentPoint >= len(self.path):
+            return 0
+
         angle1 = math.atan2(self.path[self.currentPoint][1] - robot_position[1],
                             self.path[self.currentPoint][0] - robot_position[0])
         angle2 = math.atan2(self.app.robotFront[1] - robot_position[1], self.app.robotFront[0] - robot_position[0])
@@ -118,20 +121,23 @@ class Pathfinder:
 
     def next_point(self):
         if self.currentPoint >= len(self.path):
-            self.send_order("STOP")
-            return
+            return False
 
         robot_pos = self.app.robotPosition()
         angle_deg = self.calc_angle(robot_pos)
         distance = math.dist(robot_pos, self.path[self.currentPoint])
-        self.dynamic_margin = ANGLE_MAX_MARGIN-((ANGLE_MAX_MARGIN-ANGLE_MIN_MARGIN)*((max(min(distance, ANGLE_MAX_DISTANCE), ANGLE_MIN_DISTANCE)-ANGLE_MIN_DISTANCE)/(ANGLE_MAX_DISTANCE-ANGLE_MIN_DISTANCE)))
-        if angle_deg > self.dynamic_margin:
-            self.send_order("LEFT")
-        elif angle_deg < -self.dynamic_margin:
-            self.send_order("RIGHT")
-        elif self.currentPoint < len(self.path):
-            self.send_order("FORWARD")
+
+        if self.currentPoint > 0:
+            self.dynamic_margin = ANGLE_MAX_MARGIN-((ANGLE_MAX_MARGIN-ANGLE_MIN_MARGIN)*((max(min(distance, ANGLE_MAX_DISTANCE), ANGLE_MIN_DISTANCE)-ANGLE_MIN_DISTANCE)/(ANGLE_MAX_DISTANCE-ANGLE_MIN_DISTANCE)))
+            if angle_deg > self.dynamic_margin:
+                self.send_order("LEFT")
+            elif angle_deg < -self.dynamic_margin:
+                self.send_order("RIGHT")
+            elif self.currentPoint < len(self.path):
+                self.send_order("FORWARD")
 
         if distance < ANGLE_MIN_DISTANCE:
             self.app.drawingManager.set_progression_index(self.get_current_point())
             self.currentPoint += 1
+
+        return True

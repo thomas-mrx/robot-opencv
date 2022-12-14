@@ -168,7 +168,8 @@ class App:
 
                     pf = self.drawingManager.get_pathfinder()
                     if pf:
-                        pf.next_point()
+                        if not pf.next_point():
+                            self.drawingManager.get_game().stop()
                         if DEBUG_ROBOT:
                             robot_status += ", ang: " + str(round(pf.calc_angle(self.robotPosition()))) + "d"
 
@@ -188,6 +189,14 @@ class App:
 
                     # if the `q` key was pressed, break from the loop
                     if key == ord("q"):
+                        break
+
+                    try:
+                        # will return a null pointer exception if window is being closed or -1 depending on OS
+                        w = cv2.getWindowProperty(self.name, cv2.WND_PROP_AUTOSIZE)
+                        if w == -1:
+                            break
+                    except cv2.error:
                         break
 
         except KeyboardInterrupt:
