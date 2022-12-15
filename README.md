@@ -23,3 +23,7 @@ Configure common variables (such as angle margin, game timer, video source, seri
 ``d`` enable/disable debug mode
 
 ``r`` reload every layer (a.k.a. randomize coins everywhere and delete all drawings)
+
+## Arduino
+
+Both Arduino codes for the remote and the spider are located in the ```arduino``` folder. Few updates have been made into these and are required to allow this project to run smoothly.
